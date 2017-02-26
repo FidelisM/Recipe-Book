@@ -7,7 +7,7 @@ Install NodeJS 6.9.0 or higher
 
 Run `npm install -g @angular/cli` 
 
-Run `ng serve` for a dev server within project folder. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `ng serve` (within project folder) for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
 ## Further help
 
