@@ -1,10 +1,16 @@
-import {Injectable} from '@angular/core';
+import {Injectable, EventEmitter} from '@angular/core';
 import {Recipe} from './recipe';
 import {Ingredient} from "./shared/ingredient";
+import {Headers, Http, Response} from "@angular/http";
+import 'rxjs/Rx';
+import 'rxjs/add/operator/toPromise';
 
 @Injectable()
 export class RecipeService {
-  private recipes: Recipe[] = [
+  recipesChanged = new EventEmitter<Recipe[]>();
+  private recipes: Recipe[] = [];
+
+  private defaultRecipes: Recipe[] = [
     new Recipe('Parmesan Chicken', 'Fried breaded chicken topped with a white béchamel sauce and cheese', 'http://images.media-allrecipes.com/userphotos/250x250/618489.jpg', [
       new Ingredient('Eggs', 2),
       new Ingredient('Chicken Breast', 4),
@@ -21,7 +27,11 @@ export class RecipeService {
     ])
   ];
 
-  constructor() {
+  constructor(private http: Http) {
+    this.fetchData();
+   /* this.fetchData().then((response: Response) => {
+      this.recipes = (this.recipes && this.recipes.length) ? this.recipes : this.defaultRecipes.slice();
+    });*/
   }
 
   getRecipes() {
@@ -42,5 +52,29 @@ export class RecipeService {
 
   editRecipe(oldRecipe: Recipe, newRecipe: Recipe) {
     this.recipes[this.recipes.indexOf(oldRecipe)] = newRecipe;
+  }
+
+  storeData() {
+    const body = JSON.stringify(this.recipes);
+    const headers = new Headers({
+      'Content-type': 'application/json'
+    });
+
+    return this.http.put('https://recipe-book-c5960.firebaseio.com/recipes.json', body, {
+      headers: headers
+    })
+  }
+
+  fetchData() {
+    const request = this.http.get('https://recipe-book-c5960.firebaseio.com/recipes.json');
+
+    request.map((response: Response) => response.json())
+      .subscribe((data: Recipe[]) => {
+        /*this.recipes = data;*/
+        this.recipes = (data && data.length) ? data : this.defaultRecipes.slice();
+        this.recipesChanged.emit(this.recipes);
+      });
+
+    return request.toPromise();
   }
 }
